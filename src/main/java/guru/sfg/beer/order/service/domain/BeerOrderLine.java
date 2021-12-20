@@ -20,6 +20,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
@@ -49,7 +50,7 @@ public class BeerOrderLine extends BaseEntity {
 
     @ManyToOne
     private BeerOrder beerOrder;
-
+    @Type(type = "org.hibernate.type.UUIDCharType")
     private UUID beerId;
     private String upc;
     private Integer orderQuantity = 0;

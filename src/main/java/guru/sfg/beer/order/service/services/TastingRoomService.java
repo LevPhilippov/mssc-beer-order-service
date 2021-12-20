@@ -24,12 +24,20 @@ public class TastingRoomService {
     private final BeerOrderService beerOrderService;
     private final BeerOrderRepository beerOrderRepository;
     private final List<String> beerUpcs = new ArrayList<>(3);
+    private final List<UUID> beerIds = new ArrayList<>();
+
+    public static final UUID BEER_1_UUID = UUID.fromString("0a818933-087d-47f2-ad83-2f986ed087eb");
+    public static final UUID BEER_2_UUID = UUID.fromString("a712d914-61ea-4623-8bd0-32c0f6545bfd");
+    public static final UUID BEER_3_UUID = UUID.fromString("026cc3c8-3a0c-4083-a05b-e908048c1b08");
+
 
     public TastingRoomService(CustomerRepository customerRepository, BeerOrderService beerOrderService,
                               BeerOrderRepository beerOrderRepository) {
         this.customerRepository = customerRepository;
         this.beerOrderService = beerOrderService;
         this.beerOrderRepository = beerOrderRepository;
+
+        beerIds.addAll(List.of(BEER_1_UUID,BEER_2_UUID,BEER_3_UUID));
 
         beerUpcs.add(BeerOrderBootStrap.BEER_1_UPC);
         beerUpcs.add(BeerOrderBootStrap.BEER_2_UPC);
@@ -54,6 +62,7 @@ public class TastingRoomService {
 
         BeerOrderLineDto beerOrderLine = BeerOrderLineDto.builder()
                 .upc(beerToOrder)
+                .beerId(beerIds.get(new Random().nextInt(beerIds.size())))
                 .orderQuantity(new Random().nextInt(6)) //todo externalize value to property
                 .build();
 
