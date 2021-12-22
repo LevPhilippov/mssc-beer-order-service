@@ -16,6 +16,7 @@
  */
 package guru.sfg.beer.order.service.domain;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -61,6 +62,7 @@ public class BeerOrder extends BaseEntity {
     @Fetch(FetchMode.JOIN)
     private Set<BeerOrderLine> beerOrderLines;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private BeerOrderStatusEnum orderStatus = BeerOrderStatusEnum.NEW;
 
     private String orderStatusCallbackUrl;
