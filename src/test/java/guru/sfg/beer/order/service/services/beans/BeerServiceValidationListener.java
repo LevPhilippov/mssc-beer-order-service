@@ -21,9 +21,20 @@ public class BeerServiceValidationListener {
 
     @JmsListener(destination = JmsConfig.VALIDATE_ORDER_REQUEST_QUEUE)
     public void listen(Message message) {
+        boolean isValid = true;
         ValidateOrderRequest request = (ValidateOrderRequest) message.getPayload();
         log.debug("******Received a validation request for beerOrder {}******", request.getBeerOrderDto().getId());
-        ValidateOrderResponse response = ValidateOrderResponse.builder().beerOrderId(request.getBeerOrderDto().getId()).isValid(true).build();
+
+        if(request.getBeerOrderDto().getCustomerRef()!=null && request.getBeerOrderDto().getCustomerRef().equals("validation-fail")){
+            isValid = false;
+        }
+
+        ValidateOrderResponse response = ValidateOrderResponse
+                .builder()
+                .beerOrderId(request.getBeerOrderDto().getId())
+                .isValid(isValid)
+                .build();
+
         jmsTemplate.convertAndSend(JmsConfig.VALIDATE_ORDER_RESPONSE_QUEUE,response);
     }
 }

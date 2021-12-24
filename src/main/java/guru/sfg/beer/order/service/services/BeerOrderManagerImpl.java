@@ -90,6 +90,14 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
         },()->{log.error("Error occurred during allocation error SM process of beerOrder {}", beerOrderDto.getId()); });
     }
 
+    @Override
+    public void pickUp(UUID beerOrderId) {
+        Optional<BeerOrder> allocatedOrderOptional = beerOrderRepository.findById(beerOrderId);
+        allocatedOrderOptional.ifPresentOrElse(beerOrder->{
+            sendEvent(beerOrder,BeerOrderEventEnum.BEERORDER_PICK_UP);
+        },()->{log.error("Error occurred during picking up SM transition of beerOrder {}", beerOrderId); });
+    }
+
     private BeerOrder updateAllocatedQty(BeerOrderDto dto){
         BeerOrder allocatedOrder = beerOrderRepository.getById(dto.getId());
         allocatedOrder.getBeerOrderLines().forEach(bol -> dto.getBeerOrderLines()

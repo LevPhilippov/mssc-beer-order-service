@@ -72,6 +72,6 @@ public class BeerOrderStateMachineConfig extends StateMachineConfigurerAdapter<B
                 .and().withExternal()
                     .source(BeerOrderStatusEnum.ALLOCATED)
                     .target(BeerOrderStatusEnum.PICKED_UP)
-                    .event(BeerOrderEventEnum.BEERORDER_PICKED_UP);
+                    .event(BeerOrderEventEnum.BEERORDER_PICK_UP);
     }
 }

@@ -70,10 +70,49 @@ class BeerOrderManagerImplIT {
             assertEquals(BeerOrderStatusEnum.ALLOCATED, assertedOrder.getOrderStatus());
         });
 
-
         BeerOrder savedBeerOrder2 = beerOrderRepository.findById(savedBeerOrder.getId()).get();
 
         assertEquals(BeerOrderStatusEnum.ALLOCATED, savedBeerOrder2.getOrderStatus());
+        savedBeerOrder2.getBeerOrderLines().forEach(line->{
+            assertEquals(line.getOrderQuantity(),line.getQuantityAllocated());
+        });
+    }
+
+    @Test
+    void newToValidationErrorTest() throws JsonProcessingException {
+        BeerDto beerDto = BeerDto.builder().upc("1234567890").id(beerID).build();
+        wm1.stubFor(get(BeerServiceImpl.beerServiceGetByUpcUrl+"1234567890").willReturn(okJson(objectMapper.writeValueAsString(beerDto))));
+        BeerOrder beerOrder = createBeerOrder();
+        beerOrder.setCustomerRef("validation-fail");
+        BeerOrder savedBeerOrder =  beerOrderManager.newBeerOrder(beerOrder);
+
+        assertNotNull(savedBeerOrder);
+
+        await().untilAsserted(()->{
+            BeerOrder assertedOrder = beerOrderRepository.findById(savedBeerOrder.getId()).get();
+            assertEquals(BeerOrderStatusEnum.VALIDATION_EXCEPTION, assertedOrder.getOrderStatus());
+        });
+    }
+
+    @Test
+    void newToPickedUpTest() throws JsonProcessingException {
+        BeerDto beerDto = BeerDto.builder().upc("1234567890").id(beerID).build();
+        wm1.stubFor(get(BeerServiceImpl.beerServiceGetByUpcUrl+"1234567890").willReturn(okJson(objectMapper.writeValueAsString(beerDto))));
+        BeerOrder savedBeerOrder =  beerOrderManager.newBeerOrder(createBeerOrder());
+
+        assertNotNull(savedBeerOrder);
+
+        await().untilAsserted(()->{
+            BeerOrder assertedOrder = beerOrderRepository.findById(savedBeerOrder.getId()).get();
+            assertEquals(BeerOrderStatusEnum.ALLOCATED, assertedOrder.getOrderStatus());
+        });
+
+        beerOrderManager.pickUp(savedBeerOrder.getId());
+
+        BeerOrder savedBeerOrder2 = beerOrderRepository.findById(savedBeerOrder.getId()).get();
+
+        assertEquals(BeerOrderStatusEnum.PICKED_UP, savedBeerOrder2.getOrderStatus());
+
     }
 
     private BeerOrder createBeerOrder() {

@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
-public class AllocationServiceListener {
+public class BeerServiceAllocationListener {
 
     @Autowired
     JmsTemplate jmsTemplate;
@@ -21,12 +21,12 @@ public class AllocationServiceListener {
     public void listen(Message message){
         AllocateOrderRequest request = (AllocateOrderRequest) message.getPayload();
         log.debug("******Received an allocation request from beer order service with order id {}******", request.getBeerOrderDto().getId());
+        request.getBeerOrderDto().getBeerOrderLines().forEach(line-> line.setQuantityAllocated(line.getOrderQuantity()));
         AllocateOrderResponse response = AllocateOrderResponse.builder()
                 .beerOrderDto(request.getBeerOrderDto())
                 .isAllocated(true)
                 .allocationError(false)
                 .build();
-
         jmsTemplate.convertAndSend(JmsConfig.ALLOCATE_ORDER_RESPONSE_QUEUE,response);
     }
 
