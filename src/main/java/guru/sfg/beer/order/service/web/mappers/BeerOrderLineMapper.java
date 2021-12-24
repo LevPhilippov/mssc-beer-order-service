@@ -8,6 +8,7 @@ import org.mapstruct.Mapper;
 @Mapper(uses = {DateMapper.class})
 @DecoratedWith(BeerOrderLineMapperDecorator.class)
 public interface BeerOrderLineMapper {
+
     BeerOrderLineDto beerOrderLineToDto(BeerOrderLine line);
 
 //    BeerOrderLineDto beerOrderLineToDtoEnhancedWithBeer(BeerOrderLine line);

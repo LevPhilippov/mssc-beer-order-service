@@ -19,7 +19,10 @@ package guru.sfg.brewery.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -28,9 +31,10 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class BeerOrderLineDto{
+public class BeerOrderLineDto {
 
     @JsonProperty("id")
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private UUID id = null;
 
     @JsonProperty("version")
@@ -47,6 +51,8 @@ public class BeerOrderLineDto{
     private String upc;
     private String beerName;
     private String beerStyle;
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private UUID beerId;
     private Integer orderQuantity = 0;
+    private Integer quantityAllocated;
 }

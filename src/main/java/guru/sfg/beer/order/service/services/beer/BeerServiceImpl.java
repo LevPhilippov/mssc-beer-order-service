@@ -22,7 +22,8 @@ public class BeerServiceImpl implements BeerService {
 
     private RestTemplate restTemplate;
 
-    private String beerServiceApiUrl ="/api/v1/beer/{beerId}";
+    public static final String beerServiceGetByIdUrl ="/api/v1/beer/";
+    public static final String beerServiceGetByUpcUrl ="/api/v1/beer/upc/";
 
     private String beerServiceHostUrl;
 
@@ -41,9 +42,15 @@ public class BeerServiceImpl implements BeerService {
 
     @Override
     public BeerDto getBeerDto(UUID beerId) {
-        ResponseEntity<BeerDto> exchange = restTemplate.exchange(beerServiceHostUrl + beerServiceApiUrl, HttpMethod.GET, RequestEntity.EMPTY, new ParameterizedTypeReference<BeerDto>() {
+        ResponseEntity<BeerDto> exchange = restTemplate.exchange(beerServiceHostUrl + beerServiceGetByIdUrl+"{beerId}", HttpMethod.GET, RequestEntity.EMPTY, new ParameterizedTypeReference<BeerDto>() {
         }, beerId);
         return Objects.requireNonNull(exchange).getBody();
+    }
+
+    @Override
+    public BeerDto getBeerByUpc(String upc) {
+        ResponseEntity<BeerDto> responseEntity = restTemplate.getForEntity(beerServiceHostUrl+beerServiceGetByUpcUrl+"{upc}",BeerDto.class,upc);
+        return Objects.requireNonNull(responseEntity).getBody();
     }
 }
 

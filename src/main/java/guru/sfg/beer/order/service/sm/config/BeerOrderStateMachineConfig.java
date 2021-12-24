@@ -37,15 +37,15 @@ public class BeerOrderStateMachineConfig extends StateMachineConfigurerAdapter<B
         transitions
                 .withExternal()
                     .source(BeerOrderStatusEnum.NEW)
-                    .target(BeerOrderStatusEnum.ALLOCATION_PENDING)
+                    .target(BeerOrderStatusEnum.VALIDATION_PENDING)
                     .event(BeerOrderEventEnum.VALIDATE_ORDER)
                     .action(validateOrderAction)
                 .and().withExternal()
-                    .source(BeerOrderStatusEnum.ALLOCATION_PENDING)
+                    .source(BeerOrderStatusEnum.VALIDATION_PENDING)
                     .target(BeerOrderStatusEnum.VALIDATED)
                     .event(BeerOrderEventEnum.VALIDATON_PASSED)
                 .and().withExternal()
-                    .source(BeerOrderStatusEnum.ALLOCATION_PENDING)
+                    .source(BeerOrderStatusEnum.VALIDATION_PENDING)
                     .target(BeerOrderStatusEnum.VALIDATION_EXCEPTION)
                     .event(BeerOrderEventEnum.VALIDATION_ERROR)
                 .and().withExternal()
@@ -62,7 +62,7 @@ public class BeerOrderStateMachineConfig extends StateMachineConfigurerAdapter<B
                     .target(BeerOrderStatusEnum.ALLOCATION_EXCEPTION)
                     .event(BeerOrderEventEnum.ALLOCATION_FAILED)
                 .and().withExternal()
-                    .source(BeerOrderStatusEnum.VALIDATED)
+                    .source(BeerOrderStatusEnum.ALLOCATION_PENDING)
                     .target(BeerOrderStatusEnum.PENDING_INVENTORY)
                     .event(BeerOrderEventEnum.ALLOCATION_NO_INVENTORY)
                 .and().withExternal()
@@ -72,12 +72,6 @@ public class BeerOrderStateMachineConfig extends StateMachineConfigurerAdapter<B
                 .and().withExternal()
                     .source(BeerOrderStatusEnum.ALLOCATED)
                     .target(BeerOrderStatusEnum.PICKED_UP)
-                    .event(BeerOrderEventEnum.BEERORDER_PICKED_UP)
-                .and().withExternal()
-                    .source(BeerOrderStatusEnum.ALLOCATED)
-                    .target(BeerOrderStatusEnum.DELIVERED)
-                .and().withExternal()
-                    .source(BeerOrderStatusEnum.ALLOCATED)
-                    .target(BeerOrderStatusEnum.DELIVERY_EXCEPTION);
+                    .event(BeerOrderEventEnum.BEERORDER_PICKED_UP);
     }
 }
