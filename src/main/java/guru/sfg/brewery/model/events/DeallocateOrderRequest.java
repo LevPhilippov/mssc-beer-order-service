@@ -1,18 +1,17 @@
 package guru.sfg.brewery.model.events;
 
+import guru.sfg.brewery.model.BeerOrderDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.UUID;
-
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class ValidateOrderResponse {
-    static final long serialVersionUID = 7087048810485715162L;
-    private UUID beerOrderId;
-    private Boolean isValid;
+public class DeallocateOrderRequest {
+
+    static final long serialVersionUID = 6347030634014884197L;
+    private BeerOrderDto beerOrderDto;
 }

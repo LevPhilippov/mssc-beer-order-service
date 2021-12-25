@@ -12,5 +12,6 @@ import lombok.NoArgsConstructor;
 public class OrderResponceEvent {
 
     static final long serialVersionUID = 7087048810485715162L;
-    Boolean isActionApproved;
+
+    private Boolean isActionApproved;
 }

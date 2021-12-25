@@ -3,6 +3,7 @@ package guru.sfg.beer.order.service.services;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import guru.sfg.beer.order.service.config.JmsConfig;
 import guru.sfg.beer.order.service.domain.BeerOrder;
 import guru.sfg.beer.order.service.domain.BeerOrderLine;
 import guru.sfg.beer.order.service.domain.BeerOrderStatusEnum;
@@ -11,11 +12,13 @@ import guru.sfg.beer.order.service.repositories.BeerOrderRepository;
 import guru.sfg.beer.order.service.repositories.CustomerRepository;
 import guru.sfg.beer.order.service.services.beer.BeerServiceImpl;
 import guru.sfg.brewery.model.BeerDto;
+import guru.sfg.brewery.model.events.AllocationOrderCompensatingRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jms.core.JmsTemplate;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -33,6 +36,9 @@ class BeerOrderManagerImplIT {
     static WireMockExtension wm1 = WireMockExtension.newInstance()
             .options(wireMockConfig().port(8083))
             .build();
+
+    @Autowired
+    JmsTemplate jmsTemplate;
 
     @Autowired
     BeerOrderManager beerOrderManager;
@@ -95,6 +101,38 @@ class BeerOrderManagerImplIT {
     }
 
     @Test
+    void newToAllocationErrorTest() throws JsonProcessingException {
+        BeerDto beerDto = BeerDto.builder().upc("1234567890").id(beerID).build();
+        wm1.stubFor(get(BeerServiceImpl.beerServiceGetByUpcUrl+"1234567890").willReturn(okJson(objectMapper.writeValueAsString(beerDto))));
+        BeerOrder beerOrder = createBeerOrder();
+        beerOrder.setCustomerRef("allocation-fail");
+        BeerOrder savedBeerOrder =  beerOrderManager.newBeerOrder(beerOrder);
+
+        assertNotNull(savedBeerOrder);
+
+        await().untilAsserted(()->{
+            BeerOrder assertedOrder = beerOrderRepository.findById(savedBeerOrder.getId()).get();
+            assertEquals(BeerOrderStatusEnum.ALLOCATION_EXCEPTION, assertedOrder.getOrderStatus());
+        });
+    }
+
+    @Test
+    void newToAllocationPendingTest() throws JsonProcessingException {
+        BeerDto beerDto = BeerDto.builder().upc("1234567890").id(beerID).build();
+        wm1.stubFor(get(BeerServiceImpl.beerServiceGetByUpcUrl+"1234567890").willReturn(okJson(objectMapper.writeValueAsString(beerDto))));
+        BeerOrder beerOrder = createBeerOrder();
+        beerOrder.setCustomerRef("allocation-await");
+        BeerOrder savedBeerOrder =  beerOrderManager.newBeerOrder(beerOrder);
+
+        assertNotNull(savedBeerOrder);
+
+        await().untilAsserted(()->{
+            BeerOrder assertedOrder = beerOrderRepository.findById(savedBeerOrder.getId()).get();
+            assertEquals(BeerOrderStatusEnum.PENDING_INVENTORY, assertedOrder.getOrderStatus());
+        });
+    }
+
+    @Test
     void newToPickedUpTest() throws JsonProcessingException {
         BeerDto beerDto = BeerDto.builder().upc("1234567890").id(beerID).build();
         wm1.stubFor(get(BeerServiceImpl.beerServiceGetByUpcUrl+"1234567890").willReturn(okJson(objectMapper.writeValueAsString(beerDto))));
@@ -113,6 +151,27 @@ class BeerOrderManagerImplIT {
 
         assertEquals(BeerOrderStatusEnum.PICKED_UP, savedBeerOrder2.getOrderStatus());
 
+    }
+
+    @Test
+    void allocationFailedSMActionTest() throws JsonProcessingException {
+        BeerDto beerDto = BeerDto.builder().upc("1234567890").id(beerID).build();
+        wm1.stubFor(get(BeerServiceImpl.beerServiceGetByUpcUrl+"1234567890").willReturn(okJson(objectMapper.writeValueAsString(beerDto))));
+        BeerOrder beerOrder = createBeerOrder();
+        beerOrder.setCustomerRef("allocation-fail");
+        BeerOrder savedBeerOrder =  beerOrderManager.newBeerOrder(beerOrder);
+
+        assertNotNull(savedBeerOrder);
+
+        Object o = jmsTemplate.receiveAndConvert(JmsConfig.ALLOCATION_FAILED_COMPENSATING_QUEUE);
+
+        if(o instanceof AllocationOrderCompensatingRequest) {
+            AllocationOrderCompensatingRequest request = (AllocationOrderCompensatingRequest)o;
+            assertEquals(savedBeerOrder.getId(),request.getBeerOrderId());
+        }
+
+        BeerOrder assertedOrder = beerOrderRepository.findById(savedBeerOrder.getId()).get();
+        assertEquals(BeerOrderStatusEnum.ALLOCATION_EXCEPTION, assertedOrder.getOrderStatus());
     }
 
     private BeerOrder createBeerOrder() {

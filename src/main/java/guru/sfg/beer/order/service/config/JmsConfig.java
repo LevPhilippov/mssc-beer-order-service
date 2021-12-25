@@ -14,6 +14,8 @@ public class JmsConfig {
     public static final String VALIDATE_ORDER_RESPONSE_QUEUE="validate_order_result";
     public static final String ALLOCATE_ORDER_REQUEST_QUEUE="allocate_order";
     public static final String ALLOCATE_ORDER_RESPONSE_QUEUE="allocate_order_result";
+    public static final String ALLOCATION_FAILED_COMPENSATING_QUEUE = "allocation_failed";
+    public static final String DEALLOCATE_ORDER_REQUEST_QUEUE = "deallocate_order";
 
     @Bean
     MessageConverter messageConverter(ObjectMapper objectMapper){
