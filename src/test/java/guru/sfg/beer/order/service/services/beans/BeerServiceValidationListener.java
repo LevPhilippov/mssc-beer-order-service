@@ -29,6 +29,10 @@ public class BeerServiceValidationListener {
             isValid = false;
         }
 
+        if(request.getBeerOrderDto().getCustomerRef()!=null && request.getBeerOrderDto().getCustomerRef().equals("do_not_validate")){
+            return;
+        }
+
         ValidateOrderResponse response = ValidateOrderResponse
                 .builder()
                 .beerOrderId(request.getBeerOrderDto().getId())

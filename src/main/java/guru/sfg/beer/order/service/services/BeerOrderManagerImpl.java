@@ -2,13 +2,10 @@ package guru.sfg.beer.order.service.services;
 
 import guru.sfg.beer.order.service.domain.BeerOrder;
 import guru.sfg.beer.order.service.domain.BeerOrderEventEnum;
-import guru.sfg.beer.order.service.domain.BeerOrderLine;
 import guru.sfg.beer.order.service.domain.BeerOrderStatusEnum;
 import guru.sfg.beer.order.service.repositories.BeerOrderRepository;
 import guru.sfg.beer.order.service.sm.interceptors.BeerOrderStateChangeInterceptor;
-import guru.sfg.beer.order.service.web.mappers.BeerOrderMapper;
 import guru.sfg.brewery.model.BeerOrderDto;
-import guru.sfg.brewery.model.BeerOrderLineDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
@@ -21,11 +18,8 @@ import org.springframework.statemachine.support.DefaultStateMachineContext;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 @Service
 @RequiredArgsConstructor
@@ -96,6 +90,14 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
         allocatedOrderOptional.ifPresentOrElse(beerOrder->{
             sendEvent(beerOrder,BeerOrderEventEnum.BEERORDER_PICK_UP);
         },()->{log.error("Error occurred during picking up SM transition of beerOrder {}", beerOrderId); });
+    }
+
+    @Override
+    public void cancelOrder(UUID orderId) {
+        Optional<BeerOrder> allocatedOrderOptional = beerOrderRepository.findById(orderId);
+        allocatedOrderOptional.ifPresentOrElse(beerOrder->{
+            sendEvent(beerOrder,BeerOrderEventEnum.CANCEL_ORDER);
+        },()->{log.error("Error occurred during cancelling SM transition of beerOrder {}", orderId); });
     }
 
     private BeerOrder updateAllocatedQty(BeerOrderDto dto){
