@@ -16,6 +16,7 @@
  */
 package guru.sfg.beer.order.service.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -54,6 +55,7 @@ public class Customer extends BaseEntity {
     private UUID apiKey;
 
     @OneToMany(mappedBy = "customer")
+    @JsonIgnore
     private Set<BeerOrder> beerOrders;
 
 }

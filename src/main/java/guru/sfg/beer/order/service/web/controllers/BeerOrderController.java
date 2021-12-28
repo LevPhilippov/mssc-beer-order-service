@@ -20,13 +20,18 @@ package guru.sfg.beer.order.service.web.controllers;
 import guru.sfg.beer.order.service.services.BeerOrderService;
 import guru.sfg.brewery.model.BeerOrderDto;
 import guru.sfg.brewery.model.BeerOrderPagedList;
+import guru.sfg.brewery.model.CustomerDto;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.websocket.server.PathParam;
 import java.util.UUID;
 
-@RequestMapping("/api/v1/customers/{customerId}/")
+@RequestMapping("/api/v1/customers")
 @RestController
 public class BeerOrderController {
 
@@ -39,7 +44,20 @@ public class BeerOrderController {
         this.beerOrderService = beerOrderService;
     }
 
-    @GetMapping("orders")
+    @GetMapping(produces = "application/json")
+    public ResponseEntity<Page<CustomerDto>> customers(@RequestParam(name = "pageSize", required = false) Integer pageSize,
+                                                       @RequestParam(name = "pazeNumber", required = false) Integer pageNumber){
+        Page<CustomerDto> customers = beerOrderService.customers(pageSize, pageNumber);
+        return new ResponseEntity(customers,HttpStatus.OK);
+    }
+
+    @GetMapping(path = "/{customerId}",produces = "application/json")
+    public ResponseEntity<CustomerDto> getCustomerById(@PathVariable("customerId") UUID customerId){
+        CustomerDto customerDto = beerOrderService.findCustomerById(customerId);
+        return new ResponseEntity<>(customerDto, HttpStatus.OK);
+    }
+
+    @GetMapping("/{customerId}/orders")
     public BeerOrderPagedList listOrders(@PathVariable("customerId") UUID customerId,
                                          @RequestParam(value = "pageNumber", required = false) Integer pageNumber,
                                          @RequestParam(value = "pageSize", required = false) Integer pageSize){
@@ -55,18 +73,18 @@ public class BeerOrderController {
         return beerOrderService.listOrders(customerId, PageRequest.of(pageNumber, pageSize));
     }
 
-    @PostMapping("orders")
+    @PostMapping("/{customerId}/orders")
     @ResponseStatus(HttpStatus.CREATED)
     public BeerOrderDto placeOrder(@PathVariable("customerId") UUID customerId, @RequestBody BeerOrderDto beerOrderDto){
         return beerOrderService.placeOrder(customerId, beerOrderDto);
     }
 
-    @GetMapping("orders/{orderId}")
+    @GetMapping("/{customerId}/orders/{orderId}")
     public BeerOrderDto getOrder(@PathVariable("customerId") UUID customerId, @PathVariable("orderId") UUID orderId){
         return beerOrderService.getOrderById(customerId, orderId);
     }
 
-    @PutMapping("/orders/{orderId}/pickup")
+    @PutMapping("/{customerId}/orders/{orderId}/pickup")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void pickupOrder(@PathVariable("customerId") UUID customerId, @PathVariable("orderId") UUID orderId){
         beerOrderService.pickupOrder(customerId, orderId);

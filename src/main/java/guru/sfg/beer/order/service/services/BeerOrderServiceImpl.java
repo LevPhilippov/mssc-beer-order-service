@@ -18,24 +18,29 @@
 package guru.sfg.beer.order.service.services;
 
 import guru.sfg.beer.order.service.domain.BeerOrder;
-import guru.sfg.beer.order.service.domain.BeerOrderStatusEnum;
 import guru.sfg.beer.order.service.domain.Customer;
 import guru.sfg.beer.order.service.repositories.BeerOrderRepository;
 import guru.sfg.beer.order.service.repositories.CustomerRepository;
 import guru.sfg.beer.order.service.web.mappers.BeerOrderMapper;
+import guru.sfg.beer.order.service.web.mappers.CustomerMapper;
 import guru.sfg.brewery.model.BeerOrderDto;
 import guru.sfg.brewery.model.BeerOrderPagedList;
+import guru.sfg.brewery.model.CustomerDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -47,6 +52,7 @@ public class BeerOrderServiceImpl implements BeerOrderService {
     private final CustomerRepository customerRepository;
     private final BeerOrderMapper beerOrderMapper;
     private final BeerOrderManager beerOrderManager;
+    private final CustomerMapper customerMapper;
 
 
 
@@ -93,6 +99,26 @@ public class BeerOrderServiceImpl implements BeerOrderService {
     @Override
     public void pickupOrder(UUID customerId, UUID orderId) {
         beerOrderManager.pickUp(orderId);
+    }
+
+    @Override
+    public Page<CustomerDto> customers(Integer pageSize, Integer pageNumber) {
+        PageRequest pageRequest = PageRequest.of(pageNumber != null && pageNumber >= 0 ? pageNumber : 0,
+                pageSize != null && pageSize > 0 ? pageSize : 5);
+        Page<Customer> pageOfCustomers = customerRepository.findAll(pageRequest);
+        List<CustomerDto> customerDtoList = customerRepository.findAll(pageRequest)
+                .getContent().stream().map(c -> customerMapper.customerToCustomerDto(c)).collect(Collectors.toList());
+        return new PageImpl<CustomerDto>(customerDtoList,pageRequest,pageOfCustomers.getTotalElements());
+    }
+
+    @Override
+    public CustomerDto findCustomerById(UUID customerId) {
+        Optional<Customer> customerOptional = customerRepository.findById(customerId);
+        if(customerOptional.isPresent()) {
+            return customerMapper.customerToCustomerDto(customerOptional.get());
+        } else {
+            throw new RuntimeException("Customer Not Found");
+        }
     }
 
     private BeerOrder getOrder(UUID customerId, UUID orderId){
