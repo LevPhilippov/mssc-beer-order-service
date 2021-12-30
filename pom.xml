@@ -15,17 +15,11 @@
     <description>MSSC Beer Order Service</description>
 
     <dependencies>
+        <!--        Spring state machine-->
         <dependency>
-            <groupId>javax.xml.bind</groupId>
-            <artifactId>jaxb-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.sun.xml.bind</groupId>
-            <artifactId>jaxb-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.sun.xml.bind</groupId>
-            <artifactId>jaxb-impl</artifactId>
+            <groupId>org.springframework.statemachine</groupId>
+            <artifactId>spring-statemachine-core</artifactId>
+            <version>2.5.0</version>
         </dependency>
         <dependency>
             <groupId>com.github.tomakehurst</groupId>
